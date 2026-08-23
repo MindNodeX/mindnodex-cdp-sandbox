@@ -46,6 +46,6 @@ function getBalance(asset) {
 }
 
 console.log("\nMindNodeX CDP Sandbox Dashboard");
-console.log(`Account: ${ACCOUNT_ID}\n`);
+console.log("Account: configured via ACCOUNT_ID\n");
 console.table(ASSETS.map(getBalance));
 console.log("SANDBOX ONLY — no real funds are connected.\n");
