@@ -99,13 +99,15 @@ test("execution rejects an incorrect confirmation", async () => {
 });
 
 test("config defaults to sandbox mode", () => {
+  const env = { ...process.env };
+  delete env.CDP_MODE;
+  delete env.LIVE_ACCOUNT_ID;
+
   const result = spawnSync(
     process.execPath,
     [
       "-e",
       `
-        delete process.env.CDP_MODE;
-        delete process.env.LIVE_ACCOUNT_ID;
         const config = require("./config");
         console.log(JSON.stringify(config));
       `,
@@ -113,7 +115,7 @@ test("config defaults to sandbox mode", () => {
     {
       cwd: __dirname,
       encoding: "utf8",
-      env: process.env,
+      env,
     }
   );
 

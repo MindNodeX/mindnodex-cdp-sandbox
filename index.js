@@ -4,6 +4,11 @@ const { execFileSync } = require("node:child_process");
 const config = require("./config");
 
 const ASSETS = ["usd", "usdc"];
+const accountSource = config.isLive
+  ? "LIVE_ACCOUNT_ID"
+  : process.env.ACCOUNT_ID
+    ? "ACCOUNT_ID"
+    : "default sandbox account";
 
 function getBalance(asset) {
   try {
@@ -43,9 +48,7 @@ function getBalance(asset) {
 }
 
 console.log(`\nMindNodeX CDP ${config.modeLabel} Dashboard`);
-console.log(
-  `Account: configured via ${config.isLive ? "LIVE_ACCOUNT_ID" : "ACCOUNT_ID"}\n`
-);
+console.log(`Account: configured via ${accountSource}\n`);
 console.table(ASSETS.map(getBalance));
 if (config.isLive) {
   console.log("LIVE MODE — real account settings are active.\n");

@@ -13,7 +13,7 @@ if (isLive && !process.env.LIVE_ACCOUNT_ID) {
 const sandboxAccountId =
   process.env.ACCOUNT_ID || "account_2fccb8de-2e2f-4742-92f7-547451794f9a";
 
-const liveAccountId = process.env.LIVE_ACCOUNT_ID || "";
+const liveAccountId = process.env.LIVE_ACCOUNT_ID;
 
 module.exports = {
   mode,
