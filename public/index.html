@@ -1,0 +1,963 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MindNodeX CDP Sandbox</title>
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --background: #070912;
+      --panel: #111522;
+      --panel-light: #181e2e;
+      --border: #293149;
+      --text: #f7f8ff;
+      --muted: #a9b1c7;
+      --blue: #1652f0;
+      --purple: #7957ff;
+      --green: #4ee19b;
+      --danger: #ff6b78;
+      --shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(121, 87, 255, 0.18), transparent 38%),
+        radial-gradient(circle at top right, rgba(22, 82, 240, 0.18), transparent 35%),
+        var(--background);
+      color: var(--text);
+      font-family: Inter, Arial, sans-serif;
+    }
+
+    main {
+      width: min(100% - 32px, 1050px);
+      margin: 0 auto;
+      padding: 48px 0 64px;
+    }
+
+    header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--green);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 6vw, 4rem);
+      letter-spacing: -0.055em;
+    }
+
+    .subtitle {
+      max-width: 650px;
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.65;
+    }
+
+    .badge {
+      flex: 0 0 auto;
+      padding: 10px 14px;
+      border: 1px solid rgba(78, 225, 155, 0.35);
+      border-radius: 999px;
+      background: rgba(78, 225, 155, 0.1);
+      color: var(--green);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .account-panel,
+    .transfer-form-panel {
+      padding: 22px;
+      margin-bottom: 22px;
+      border: 1px solid rgba(121, 87, 255, 0.5);
+      border-radius: 20px;
+      background: rgba(17, 21, 34, 0.92);
+      box-shadow: var(--shadow);
+    }
+
+    .transfer-form-panel h2 {
+      margin: 0 0 8px;
+      font-size: 1.35rem;
+    }
+
+    .form-description {
+      margin: 0 0 20px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .transfer-form {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto auto;
+      align-items: end;
+      gap: 14px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field label {
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+
+    .field input {
+      width: 100%;
+      min-height: 48px;
+      padding: 0 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--panel-light);
+      color: var(--text);
+      font: inherit;
+    }
+
+    .field input:focus {
+      outline: 3px solid rgba(121, 87, 255, 0.45);
+      outline-offset: 2px;
+    }
+
+    .secondary-button {
+      border: 1px solid var(--border);
+      background: var(--panel-light);
+      box-shadow: none;
+    }
+
+    .transfer-form-status {
+      min-height: 24px;
+      margin: 14px 0 0;
+      color: var(--muted);
+      overflow-wrap: anywhere;
+    }
+
+    .sandbox-warning {
+      color: var(--green);
+      font-weight: 800;
+    }
+
+    .transactions-panel {
+      padding: 22px;
+      margin-bottom: 22px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background: rgba(17, 21, 34, 0.88);
+      box-shadow: var(--shadow);
+    }
+
+    .transactions-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .transactions-heading h2 {
+      margin: 0;
+      font-size: 1.35rem;
+    }
+
+    .transaction-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .transaction-actions button {
+      min-height: 40px;
+      padding: 0 14px;
+      box-shadow: none;
+    }
+
+    .transfer-count {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .transfer-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .empty-transfers,
+    .transfer-row {
+      margin: 0;
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--panel-light);
+    }
+
+    .empty-transfers {
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .transfer-row {
+      display: grid;
+      gap: 8px;
+    }
+
+    .transfer-title {
+      margin: 0;
+      font-weight: 800;
+    }
+
+    .transfer-meta {
+      margin: 0;
+      color: var(--muted);
+      overflow-wrap: anywhere;
+    }
+
+    .transfer-status {
+      color: var(--purple);
+      font-weight: 800;
+      text-transform: capitalize;
+    }
+
+    .transfer-receipt {
+      margin-top: 6px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .transfer-receipt summary {
+      color: var(--green);
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    .receipt-grid {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .receipt-line {
+      display: grid;
+      gap: 4px;
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .receipt-line strong {
+      color: var(--text);
+      font-size: 0.78rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .receipt-value {
+      overflow-wrap: anywhere;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    }
+
+    .notice {
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background: rgba(17, 21, 34, 0.88);
+      box-shadow: var(--shadow);
+    }
+
+    .account-panel {
+      padding: 22px;
+      margin-bottom: 22px;
+    }
+
+    .label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .account-id {
+      overflow-wrap: anywhere;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 0.95rem;
+    }
+
+    .balances {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 22px;
+    }
+
+    .balance-card {
+      position: relative;
+      overflow: hidden;
+      min-height: 235px;
+      padding: 26px;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      background: linear-gradient(150deg, var(--panel-light), var(--panel));
+      box-shadow: var(--shadow);
+    }
+
+    .balance-card::after {
+      content: "";
+      position: absolute;
+      right: -45px;
+      bottom: -55px;
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      background: var(--accent);
+      filter: blur(15px);
+      opacity: 0.18;
+    }
+
+    .asset-name {
+      position: relative;
+      z-index: 1;
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 800;
+    }
+
+    .amount {
+      position: relative;
+      z-index: 1;
+      margin: 44px 0 12px;
+      font-size: clamp(2.35rem, 7vw, 4.5rem);
+      font-weight: 850;
+      letter-spacing: -0.06em;
+    }
+
+    .total {
+      position: relative;
+      z-index: 1;
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin: 24px 0;
+    }
+
+    button {
+      min-height: 48px;
+      padding: 0 20px;
+      border: 0;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      color: white;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 800;
+      box-shadow: 0 12px 30px rgba(22, 82, 240, 0.25);
+    }
+
+    button:hover {
+      filter: brightness(1.1);
+    }
+
+    button:focus-visible {
+      outline: 3px solid white;
+      outline-offset: 3px;
+    }
+
+    button:disabled {
+      cursor: wait;
+      opacity: 0.65;
+    }
+
+    .status {
+      margin: 0;
+      color: var(--muted);
+      text-align: right;
+    }
+
+    .notice {
+      padding: 20px 22px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .notice strong {
+      color: var(--green);
+    }
+
+    .error {
+      color: var(--danger);
+    }
+
+    @media (max-width: 700px) {
+      header,
+      .controls {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .balances {
+        grid-template-columns: 1fr;
+      }
+
+      .transfer-form {
+        grid-template-columns: 1fr;
+      }
+
+      .status {
+        text-align: left;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <header>
+      <div>
+        <p class="eyebrow">Coinbase Developer Platform</p>
+        <h1>MindNodeX Dashboard</h1>
+        <p class="subtitle">
+          A local view of the custodial account connected to Coinbase CDP Sandbox.
+        </p>
+      </div>
+
+      <span class="badge">Sandbox only</span>
+    </header>
+
+    <section class="account-panel" aria-labelledby="account-heading">
+      <span class="label" id="account-heading">Custodial account</span>
+      <div class="account-id" id="account-id">Loading account…</div>
+    </section>
+
+    <section class="balances" aria-label="Sandbox balances" aria-busy="true" id="balances">
+      <article class="balance-card" style="--accent: #1652f0">
+        <p class="asset-name">US Dollar · USD</p>
+        <p class="amount" id="usd-amount">—</p>
+        <p class="total" id="usd-total">Waiting for Coinbase Sandbox</p>
+      </article>
+
+      <article class="balance-card" style="--accent: #7957ff">
+        <p class="asset-name">USD Coin · USDC</p>
+        <p class="amount" id="usdc-amount">—</p>
+        <p class="total" id="usdc-total">Waiting for Coinbase Sandbox</p>
+      </article>
+    </section>
+
+    <div class="controls">
+      <button type="button" id="refresh-button">Refresh dashboard</button>
+      <p class="status" id="status" role="status" aria-live="polite">
+        Loading Sandbox data…
+      </p>
+    </div>
+
+    <section class="transfer-form-panel" aria-labelledby="transfer-form-title">
+      <h2 id="transfer-form-title">Create a simulated transfer</h2>
+      <p class="form-description">
+        Send up to 1 fake USDC to Coinbase’s reserved Sandbox success address.
+        <span class="sandbox-warning">No real funds or blockchain are involved.</span>
+      </p>
+
+      <form class="transfer-form" id="sandbox-transfer-form">
+        <div class="field">
+          <label for="transfer-amount">Fake USDC amount</label>
+          <input
+            id="transfer-amount"
+            name="amount"
+            type="number"
+            min="0.01"
+            max="1.00"
+            step="0.01"
+            value="1.00"
+            required
+          >
+        </div>
+
+        <div class="field">
+          <label for="transfer-confirmation">Type SANDBOX to confirm</label>
+          <input
+            id="transfer-confirmation"
+            name="confirmation"
+            type="text"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="SANDBOX"
+            required
+          >
+        </div>
+
+        <button
+          class="secondary-button"
+          type="button"
+          id="preview-button"
+        >
+          Preview
+        </button>
+
+        <button type="submit" id="transfer-button" disabled>
+          Confirm and send
+        </button>
+      </form>
+
+      <p
+        class="transfer-form-status"
+        id="transfer-form-status"
+        role="status"
+        aria-live="polite"
+      ></p>
+    </section>
+
+    <section class="transactions-panel" aria-labelledby="transactions-title">
+      <div class="transactions-heading">
+        <h2 id="transactions-title">Sandbox transfers</h2>
+        <div class="transaction-actions">
+          <span class="transfer-count" id="transfer-count">Loading…</span>
+          <button
+            class="secondary-button"
+            type="button"
+            id="csv-button"
+            disabled
+          >
+            Download CSV
+          </button>
+        </div>
+      </div>
+
+      <div
+        class="transfer-list"
+        id="transfer-list"
+        aria-live="polite"
+        aria-busy="true"
+      >
+        <p class="empty-transfers">Checking Coinbase Sandbox history…</p>
+      </div>
+    </section>
+
+    <aside class="notice">
+      <strong>No real money is connected.</strong>
+      This dashboard is available only on this laptop and reads simulated
+      Coinbase Sandbox balances through your protected CDP CLI configuration.
+    </aside>
+  </main>
+
+  <script>
+    "use strict";
+
+    const elements = {
+      account: document.querySelector("#account-id"),
+      balances: document.querySelector("#balances"),
+      usdAmount: document.querySelector("#usd-amount"),
+      usdTotal: document.querySelector("#usd-total"),
+      usdcAmount: document.querySelector("#usdc-amount"),
+      usdcTotal: document.querySelector("#usdc-total"),
+      refresh: document.querySelector("#refresh-button"),
+      status: document.querySelector("#status"),
+      transferList: document.querySelector("#transfer-list"),
+      transferCount: document.querySelector("#transfer-count"),
+      transferForm: document.querySelector("#sandbox-transfer-form"),
+      transferAmount: document.querySelector("#transfer-amount"),
+      transferConfirmation: document.querySelector("#transfer-confirmation"),
+      transferButton: document.querySelector("#transfer-button"),
+      transferFormStatus: document.querySelector("#transfer-form-status"),
+      previewButton: document.querySelector("#preview-button"),
+      csvButton: document.querySelector("#csv-button"),
+    };
+
+    let latestTransfers = [];
+
+    function displayBalance(balance) {
+      const value = Number(balance.available);
+      const total = Number(balance.total);
+      const formattedValue = Number.isFinite(value) ? value.toFixed(2) : "0.00";
+      const formattedTotal = Number.isFinite(total) ? total.toFixed(2) : "0.00";
+
+      if (balance.asset === "USD") {
+        elements.usdAmount.textContent = `$${formattedValue}`;
+        elements.usdTotal.textContent = `Total: ${formattedTotal} USD`;
+      }
+
+      if (balance.asset === "USDC") {
+        elements.usdcAmount.textContent = `${formattedValue}`;
+        elements.usdcTotal.textContent = `Total: ${formattedTotal} USDC`;
+      }
+    }
+
+    let previewedAmount = null;
+
+    function resetTransferPreview() {
+      if (previewedAmount !== null) {
+        elements.transferFormStatus.textContent =
+          "Amount changed. Preview the transfer again.";
+      }
+
+      previewedAmount = null;
+      elements.transferButton.disabled = true;
+    }
+
+    async function previewTransfer() {
+      elements.previewButton.disabled = true;
+      elements.transferButton.disabled = true;
+      elements.transferFormStatus.classList.remove("error");
+      elements.transferFormStatus.textContent =
+        "Validating fake transfer with Coinbase Sandbox…";
+
+      try {
+        const amount = Number(elements.transferAmount.value);
+
+        const response = await fetch("/api/transfers/validate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            amount: elements.transferAmount.value,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Sandbox preview failed.");
+        }
+
+        previewedAmount = amount;
+        const quote = data.quote;
+
+        elements.transferFormStatus.textContent =
+          `Preview approved: ${quote.sourceAmount} fake USDC → reserved Base Sandbox address. Type SANDBOX, then confirm.`;
+
+        elements.transferButton.disabled = false;
+      } catch (error) {
+        previewedAmount = null;
+        elements.transferFormStatus.classList.add("error");
+        elements.transferFormStatus.textContent = error.message;
+      } finally {
+        elements.previewButton.disabled = false;
+      }
+    }
+
+    async function submitTransfer(event) {
+      event.preventDefault();
+
+      const currentAmount = Number(elements.transferAmount.value);
+
+      if (previewedAmount === null || currentAmount !== previewedAmount) {
+        elements.transferFormStatus.classList.add("error");
+        elements.transferFormStatus.textContent =
+          "Preview the current amount before confirming.";
+        elements.transferButton.disabled = true;
+        return;
+      }
+
+      elements.transferButton.disabled = true;
+      elements.transferFormStatus.classList.remove("error");
+      elements.transferFormStatus.textContent =
+        "Submitting simulated Sandbox transfer…";
+
+      try {
+        const response = await fetch("/api/transfers", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            amount: elements.transferAmount.value,
+            confirmation: elements.transferConfirmation.value,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Sandbox transfer failed.");
+        }
+
+        const transfer = data.transfer;
+        elements.transferFormStatus.textContent =
+          `Completed ${transfer.sourceAmount} fake USDC · ${transfer.transferId}`;
+
+        elements.transferConfirmation.value = "";
+        previewedAmount = null;
+        elements.transferButton.disabled = true;
+
+        await loadBalances();
+        await loadTransfers();
+      } catch (error) {
+        elements.transferFormStatus.classList.add("error");
+        elements.transferFormStatus.textContent = error.message;
+      } finally {
+        elements.transferButton.disabled = false;
+      }
+    }
+
+    function csvCell(value) {
+      let text = String(value ?? "");
+
+      if (/^[=+\-@]/.test(text)) {
+        text = `'${text}`;
+      }
+
+      return `"${text.replaceAll('"', '""')}"`;
+    }
+
+    function downloadTransfersCsv() {
+      if (latestTransfers.length === 0) {
+        return;
+      }
+
+      const headers = [
+        "transfer_id",
+        "status",
+        "amount",
+        "source_asset",
+        "target_asset",
+        "source_account",
+        "destination",
+        "network",
+        "transaction_hash",
+        "created_at",
+        "completed_at",
+      ];
+
+      const rows = latestTransfers.map((transfer) => {
+        const onchain = transfer.details?.onchainTransactions?.[0] || {};
+
+        return [
+          transfer.transferId,
+          transfer.status,
+          transfer.sourceAmount || transfer.amount,
+          transfer.sourceAsset || transfer.source?.asset,
+          transfer.targetAsset || transfer.target?.asset,
+          transfer.source?.accountId,
+          transfer.target?.address || transfer.target?.accountId,
+          onchain.network || transfer.target?.network,
+          onchain.transactionHash,
+          transfer.createdAt,
+          transfer.completedAt,
+        ];
+      });
+
+      const csv = [headers, ...rows]
+        .map((row) => row.map(csvCell).join(","))
+        .join("\r\n");
+
+      const blob = new Blob([csv], {
+        type: "text/csv;charset=utf-8",
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const date = new Date().toISOString().slice(0, 10);
+
+      link.href = url;
+      link.download = `mindnodex-sandbox-transfers-${date}.csv`;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function displayTransfers(transfers) {
+      latestTransfers = Array.isArray(transfers) ? transfers : [];
+      elements.csvButton.disabled = latestTransfers.length === 0;
+      elements.transferList.replaceChildren();
+      elements.transferCount.textContent =
+        `${transfers.length} ${transfers.length === 1 ? "transfer" : "transfers"}`;
+
+      if (transfers.length === 0) {
+        const empty = document.createElement("p");
+        empty.className = "empty-transfers";
+        empty.textContent =
+          "No Sandbox transfers yet. Test-asset balance edits are not recorded as transfers.";
+        elements.transferList.append(empty);
+        return;
+      }
+
+      transfers.forEach((transfer) => {
+        const row = document.createElement("article");
+        row.className = "transfer-row";
+
+        const sourceAsset = String(
+          transfer.sourceAsset || transfer.source?.asset || "unknown"
+        ).toUpperCase();
+
+        const targetAsset = String(
+          transfer.targetAsset || transfer.target?.asset || "unknown"
+        ).toUpperCase();
+
+        const title = document.createElement("p");
+        title.className = "transfer-title";
+        title.textContent = `${sourceAsset} → ${targetAsset}`;
+
+        const status = document.createElement("span");
+        status.className = "transfer-status";
+        status.textContent = transfer.status || "unknown";
+
+        const amount = transfer.sourceAmount || transfer.amount || "—";
+        const created = transfer.createdAt
+          ? new Date(transfer.createdAt).toLocaleString()
+          : "Time unavailable";
+
+        const meta = document.createElement("p");
+        meta.className = "transfer-meta";
+        meta.textContent =
+          `${amount} ${sourceAsset} · ${created} · ${transfer.transferId || "No transfer ID"}`;
+
+        const receipt = document.createElement("details");
+        receipt.className = "transfer-receipt";
+
+        const receiptSummary = document.createElement("summary");
+        receiptSummary.textContent = "View receipt";
+
+        const receiptGrid = document.createElement("div");
+        receiptGrid.className = "receipt-grid";
+
+        function addReceiptLine(label, value) {
+          const line = document.createElement("p");
+          line.className = "receipt-line";
+
+          const heading = document.createElement("strong");
+          heading.textContent = label;
+
+          const detail = document.createElement("span");
+          detail.className = "receipt-value";
+          detail.textContent = value || "Unavailable";
+
+          line.append(heading, detail);
+          receiptGrid.append(line);
+        }
+
+        const onchain =
+          transfer.details?.onchainTransactions?.[0] || {};
+
+        const completed = transfer.completedAt
+          ? new Date(transfer.completedAt).toLocaleString()
+          : "Not completed";
+
+        addReceiptLine("Transfer ID", transfer.transferId);
+        addReceiptLine("Source account", transfer.source?.accountId);
+        addReceiptLine(
+          "Destination",
+          transfer.target?.address
+        );
+        addReceiptLine(
+          "Network",
+          onchain.network || transfer.target?.network
+        );
+        addReceiptLine(
+          "Simulated transaction hash",
+          onchain.transactionHash
+        );
+        addReceiptLine("Completed", completed);
+
+        receipt.append(receiptSummary, receiptGrid);
+        row.append(title, status, meta, receipt);
+        elements.transferList.append(row);
+      });
+    }
+
+    async function loadTransfers() {
+      elements.transferList.setAttribute("aria-busy", "true");
+
+      try {
+        const response = await fetch("/api/transfers", { cache: "no-store" });
+
+        if (!response.ok) {
+          throw new Error("Sandbox transfer request failed.");
+        }
+
+        const data = await response.json();
+        displayTransfers(data.transfers || []);
+      } catch (error) {
+        latestTransfers = [];
+        elements.csvButton.disabled = true;
+        elements.transferList.replaceChildren();
+
+        const message = document.createElement("p");
+        message.className = "empty-transfers error";
+        message.textContent = error.message;
+
+        elements.transferList.append(message);
+        elements.transferCount.textContent = "Unavailable";
+      } finally {
+        elements.transferList.setAttribute("aria-busy", "false");
+      }
+    }
+
+    async function loadBalances() {
+      elements.refresh.disabled = true;
+      elements.balances.setAttribute("aria-busy", "true");
+      elements.status.classList.remove("error");
+      elements.status.textContent = "Refreshing Sandbox balances…";
+
+      try {
+        const response = await fetch("/api/balances", { cache: "no-store" });
+
+        if (!response.ok) {
+          throw new Error("Sandbox API request failed.");
+        }
+
+        const data = await response.json();
+
+        elements.account.textContent = data.accountId;
+        data.balances.forEach(displayBalance);
+
+        const updated = new Date(data.updatedAt);
+        elements.status.textContent =
+          `Updated ${updated.toLocaleTimeString()} · ${data.environment}`;
+      } catch (error) {
+        elements.status.classList.add("error");
+        elements.status.textContent = error.message;
+      } finally {
+        elements.refresh.disabled = false;
+        elements.balances.setAttribute("aria-busy", "false");
+      }
+    }
+
+    elements.csvButton.addEventListener("click", downloadTransfersCsv);
+    elements.previewButton.addEventListener("click", previewTransfer);
+    elements.transferAmount.addEventListener("input", resetTransferPreview);
+    elements.transferForm.addEventListener("submit", submitTransfer);
+
+    elements.refresh.addEventListener("click", async () => {
+      await loadBalances();
+      await loadTransfers();
+    });
+
+    loadBalances();
+    loadTransfers();
+  </script>
+</body>
+</html>

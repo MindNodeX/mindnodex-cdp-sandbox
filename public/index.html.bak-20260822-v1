@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MindNodeX CDP Sandbox</title>
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --background: #070912;
+      --panel: #111522;
+      --panel-light: #181e2e;
+      --border: #293149;
+      --text: #f7f8ff;
+      --muted: #a9b1c7;
+      --blue: #1652f0;
+      --purple: #7957ff;
+      --green: #4ee19b;
+      --danger: #ff6b78;
+      --shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(121, 87, 255, 0.18), transparent 38%),
+        radial-gradient(circle at top right, rgba(22, 82, 240, 0.18), transparent 35%),
+        var(--background);
+      color: var(--text);
+      font-family: Inter, Arial, sans-serif;
+    }
+
+    main {
+      width: min(100% - 32px, 1050px);
+      margin: 0 auto;
+      padding: 48px 0 64px;
+    }
+
+    header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--green);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 6vw, 4rem);
+      letter-spacing: -0.055em;
+    }
+
+    .subtitle {
+      max-width: 650px;
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.65;
+    }
+
+    .badge {
+      flex: 0 0 auto;
+      padding: 10px 14px;
+      border: 1px solid rgba(78, 225, 155, 0.35);
+      border-radius: 999px;
+      background: rgba(78, 225, 155, 0.1);
+      color: var(--green);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .account-panel,
+    .notice {
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background: rgba(17, 21, 34, 0.88);
+      box-shadow: var(--shadow);
+    }
+
+    .account-panel {
+      padding: 22px;
+      margin-bottom: 22px;
+    }
+
+    .label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .account-id {
+      overflow-wrap: anywhere;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 0.95rem;
+    }
+
+    .balances {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 22px;
+    }
+
+    .balance-card {
+      position: relative;
+      overflow: hidden;
+      min-height: 235px;
+      padding: 26px;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      background: linear-gradient(150deg, var(--panel-light), var(--panel));
+      box-shadow: var(--shadow);
+    }
+
+    .balance-card::after {
+      content: "";
+      position: absolute;
+      right: -45px;
+      bottom: -55px;
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      background: var(--accent);
+      filter: blur(15px);
+      opacity: 0.18;
+    }
+
+    .asset-name {
+      position: relative;
+      z-index: 1;
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 800;
+    }
+
+    .amount {
+      position: relative;
+      z-index: 1;
+      margin: 44px 0 12px;
+      font-size: clamp(2.35rem, 7vw, 4.5rem);
+      font-weight: 850;
+      letter-spacing: -0.06em;
+    }
+
+    .total {
+      position: relative;
+      z-index: 1;
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin: 24px 0;
+    }
+
+    button {
+      min-height: 48px;
+      padding: 0 20px;
+      border: 0;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      color: white;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 800;
+      box-shadow: 0 12px 30px rgba(22, 82, 240, 0.25);
+    }
+
+    button:hover {
+      filter: brightness(1.1);
+    }
+
+    button:focus-visible {
+      outline: 3px solid white;
+      outline-offset: 3px;
+    }
+
+    button:disabled {
+      cursor: wait;
+      opacity: 0.65;
+    }
+
+    .status {
+      margin: 0;
+      color: var(--muted);
+      text-align: right;
+    }
+
+    .notice {
+      padding: 20px 22px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .notice strong {
+      color: var(--green);
+    }
+
+    .error {
+      color: var(--danger);
+    }
+
+    @media (max-width: 700px) {
+      header,
+      .controls {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .balances {
+        grid-template-columns: 1fr;
+      }
+
+      .status {
+        text-align: left;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <header>
+      <div>
+        <p class="eyebrow">Coinbase Developer Platform</p>
+        <h1>MindNodeX Dashboard</h1>
+        <p class="subtitle">
+          A local view of the custodial account connected to Coinbase CDP Sandbox.
+        </p>
+      </div>
+
+      <span class="badge">Sandbox only</span>
+    </header>
+
+    <section class="account-panel" aria-labelledby="account-heading">
+      <span class="label" id="account-heading">Custodial account</span>
+      <div class="account-id" id="account-id">Loading account…</div>
+    </section>
+
+    <section class="balances" aria-label="Sandbox balances" aria-busy="true" id="balances">
+      <article class="balance-card" style="--accent: #1652f0">
+        <p class="asset-name">US Dollar · USD</p>
+        <p class="amount" id="usd-amount">—</p>
+        <p class="total" id="usd-total">Waiting for Coinbase Sandbox</p>
+      </article>
+
+      <article class="balance-card" style="--accent: #7957ff">
+        <p class="asset-name">USD Coin · USDC</p>
+        <p class="amount" id="usdc-amount">—</p>
+        <p class="total" id="usdc-total">Waiting for Coinbase Sandbox</p>
+      </article>
+    </section>
+
+    <div class="controls">
+      <button type="button" id="refresh-button">Refresh balances</button>
+      <p class="status" id="status" role="status" aria-live="polite">
+        Loading Sandbox data…
+      </p>
+    </div>
+
+    <aside class="notice">
+      <strong>No real money is connected.</strong>
+      This dashboard is available only on this laptop and reads simulated
+      Coinbase Sandbox balances through your protected CDP CLI configuration.
+    </aside>
+  </main>
+
+  <script>
+    "use strict";
+
+    const elements = {
+      account: document.querySelector("#account-id"),
+      balances: document.querySelector("#balances"),
+      usdAmount: document.querySelector("#usd-amount"),
+      usdTotal: document.querySelector("#usd-total"),
+      usdcAmount: document.querySelector("#usdc-amount"),
+      usdcTotal: document.querySelector("#usdc-total"),
+      refresh: document.querySelector("#refresh-button"),
+      status: document.querySelector("#status"),
+    };
+
+    function displayBalance(balance) {
+      const value = Number(balance.available);
+      const total = Number(balance.total);
+      const formattedValue = Number.isFinite(value) ? value.toFixed(2) : "0.00";
+      const formattedTotal = Number.isFinite(total) ? total.toFixed(2) : "0.00";
+
+      if (balance.asset === "USD") {
+        elements.usdAmount.textContent = `$${formattedValue}`;
+        elements.usdTotal.textContent = `Total: ${formattedTotal} USD`;
+      }
+
+      if (balance.asset === "USDC") {
+        elements.usdcAmount.textContent = `${formattedValue}`;
+        elements.usdcTotal.textContent = `Total: ${formattedTotal} USDC`;
+      }
+    }
+
+    async function loadBalances() {
+      elements.refresh.disabled = true;
+      elements.balances.setAttribute("aria-busy", "true");
+      elements.status.classList.remove("error");
+      elements.status.textContent = "Refreshing Sandbox balances…";
+
+      try {
+        const response = await fetch("/api/balances", { cache: "no-store" });
+
+        if (!response.ok) {
+          throw new Error("Sandbox API request failed.");
+        }
+
+        const data = await response.json();
+
+        elements.account.textContent = data.accountId;
+        data.balances.forEach(displayBalance);
+
+        const updated = new Date(data.updatedAt);
+        elements.status.textContent =
+          `Updated ${updated.toLocaleTimeString()} · ${data.environment}`;
+      } catch (error) {
+        elements.status.classList.add("error");
+        elements.status.textContent = error.message;
+      } finally {
+        elements.refresh.disabled = false;
+        elements.balances.setAttribute("aria-busy", "false");
+      }
+    }
+
+    elements.refresh.addEventListener("click", loadBalances);
+    loadBalances();
+  </script>
+</body>
+</html>

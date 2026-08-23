@@ -1,0 +1,14 @@
+{
+  "name": "mindnodex-cdp-sandbox",
+  "version": "1.0.0",
+  "description": "MindNodeX Coinbase CDP Sandbox balance dashboard",
+  "main": "index.js",
+  "scripts": {
+    "test": "node --test test_server.js",
+    "start": "node server.js",
+    "cli": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
