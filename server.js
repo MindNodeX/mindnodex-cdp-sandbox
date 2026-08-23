@@ -6,14 +6,14 @@ const fs = require("node:fs/promises");
 const { execFile } = require("node:child_process");
 const { promisify } = require("node:util");
 
-const config = require("./config");
-
 const runFile = promisify(execFile);
 
 const HOST = "127.0.0.1";
 const PORT = Number(process.env.PORT || 3000);
 
-const ACCOUNT_ID = config.accountId;
+const ACCOUNT_ID =
+  process.env.ACCOUNT_ID ||
+  "account_2fccb8de-2e2f-4742-92f7-547451794f9a";
 
 const ASSETS = ["usd", "usdc"];
 const HTML_FILE = path.join(__dirname, "public", "index.html");
@@ -25,7 +25,7 @@ async function getBalance(asset) {
       "api",
       `/accounts/${ACCOUNT_ID}/balances/${asset}`,
       "-e",
-      config.balanceEnv,
+      "sandbox",
     ],
     {
       timeout: 20000,
@@ -47,7 +47,7 @@ async function getBalance(asset) {
 async function getTransfers() {
   const { stdout } = await runFile(
     "cdp",
-    ["api", "/platform/v2/transfers", "-e", config.transferListEnv],
+    ["api", "/platform/v2/transfers", "-e", "sandbox-root"],
     {
       timeout: 20000,
       maxBuffer: 1024 * 1024,
@@ -58,7 +58,7 @@ async function getTransfers() {
   return Array.isArray(data.transfers) ? data.transfers : [];
 }
 
-async function createTransfer(amount) {
+async function createSandboxTransfer(amount) {
   const { stdout } = await runFile(
     "cdp",
     [
@@ -67,7 +67,7 @@ async function createTransfer(amount) {
       "POST",
       "/platform/v2/transfers",
       "-e",
-      config.transferEnv,
+      "sandbox-transfer",
       `source.accountId=${ACCOUNT_ID}`,
       "source.asset=usdc",
       "target.network=base",
@@ -86,7 +86,7 @@ async function createTransfer(amount) {
   return JSON.parse(stdout);
 }
 
-async function validateTransfer(amount) {
+async function validateSandboxTransfer(amount) {
   const { stdout } = await runFile(
     "cdp",
     [
@@ -95,7 +95,7 @@ async function validateTransfer(amount) {
       "POST",
       "/platform/v2/transfers",
       "-e",
-      config.transferEnv,
+      "sandbox-transfer",
       `source.accountId=${ACCOUNT_ID}`,
       "source.asset=usdc",
       "target.network=base",
@@ -179,16 +179,16 @@ const server = http.createServer(async (request, response) => {
 
       if (!Number.isFinite(amount) || amount < 0.01 || amount > 1) {
         sendJson(response, 400, {
-          error: `${config.modeLabel} transfer amount must be between 0.01 and 1.00 USDC.`,
+          error: "Sandbox transfer amount must be between 0.01 and 1.00 USDC.",
         });
         return;
       }
 
-      const quote = await validateTransfer(amount);
+      const quote = await validateSandboxTransfer(amount);
 
       sendJson(response, 200, {
-        environment: config.environmentLabel,
-        simulated: !config.isLive,
+        environment: "sandbox",
+        simulated: true,
         quote,
       });
     } catch (error) {
@@ -197,7 +197,7 @@ const server = http.createServer(async (request, response) => {
         error:
           error.statusCode && error.statusCode < 500
             ? error.message
-            : "Coinbase transfer validation failed.",
+            : "Coinbase Sandbox transfer validation failed.",
       });
     }
 
@@ -222,25 +222,25 @@ const server = http.createServer(async (request, response) => {
       const body = await readJsonBody(request);
       const amount = Number(body.amount);
 
-      if (body.confirmation !== config.confirmationWord) {
+      if (body.confirmation !== "SANDBOX") {
         sendJson(response, 400, {
-          error: `Type ${config.confirmationWord} to confirm this ${config.isLive ? "LIVE" : "simulated"} transfer.`,
+          error: "Type SANDBOX to confirm this simulated transfer.",
         });
         return;
       }
 
       if (!Number.isFinite(amount) || amount < 0.01 || amount > 1) {
         sendJson(response, 400, {
-          error: `${config.modeLabel} transfer amount must be between 0.01 and 1.00 USDC.`,
+          error: "Sandbox transfer amount must be between 0.01 and 1.00 USDC.",
         });
         return;
       }
 
-      const transfer = await createTransfer(amount);
+      const transfer = await createSandboxTransfer(amount);
 
       sendJson(response, 201, {
-        environment: config.environmentLabel,
-        simulated: !config.isLive,
+        environment: "sandbox",
+        simulated: true,
         transfer,
       });
     } catch (error) {
@@ -249,7 +249,7 @@ const server = http.createServer(async (request, response) => {
         error:
           error.statusCode && error.statusCode < 500
             ? error.message
-            : "Coinbase transfer request failed.",
+            : "Coinbase Sandbox transfer request failed.",
       });
     }
 
@@ -266,14 +266,14 @@ const server = http.createServer(async (request, response) => {
 
       sendJson(response, 200, {
         accountId: ACCOUNT_ID,
-        environment: config.environmentLabel,
+        environment: "sandbox",
         updatedAt: new Date().toISOString(),
         transfers,
       });
     } catch (error) {
       console.error(error.stderr || error.message);
       sendJson(response, 502, {
-        error: "Coinbase transfer request failed.",
+        error: "Coinbase Sandbox transfer request failed.",
       });
     }
 
@@ -286,14 +286,14 @@ const server = http.createServer(async (request, response) => {
 
       sendJson(response, 200, {
         accountId: ACCOUNT_ID,
-        environment: config.environmentLabel,
+        environment: "sandbox",
         updatedAt: new Date().toISOString(),
         balances,
       });
     } catch (error) {
       console.error(error.stderr || error.message);
       sendJson(response, 502, {
-        error: "Coinbase balance request failed.",
+        error: "Coinbase Sandbox balance request failed.",
       });
     }
 
@@ -332,10 +332,5 @@ const server = http.createServer(async (request, response) => {
 server.listen(PORT, HOST, () => {
   console.log("\nMindNodeX CDP Sandbox Web Dashboard");
   console.log(`Open: http://${HOST}:${PORT}`);
-
-  if (config.isLive) {
-    console.log("⚠️  LIVE MODE — real funds may be affected.\n");
-  } else {
-    console.log("SANDBOX ONLY — no real funds are connected.\n");
-  }
+  console.log("SANDBOX ONLY — no real funds are connected.\n");
 });
