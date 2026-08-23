@@ -22,7 +22,7 @@ The goal is simple: keep the sandbox flow predictable, keep the live path isolat
 - Preview and execution checks with a one-USDC limit
 - Shared config module for server and CLI entrypoints
 - Sandbox-first config behavior
-- Live-mode guardrail requiring `LIVE_ACCOUNT_ID`
+- Live-mode guardrail requiring `CDP_MODE=live`, `ENABLE_LIVE=true`, and `LIVE_ACCOUNT_ID`
 
 ## Requirements
 
@@ -66,8 +66,8 @@ The current tests cover:
 - execution rejection above the one-USDC limit
 - incorrect confirmation handling
 - sandbox-mode default behavior
-- live-mode enablement when `LIVE_ACCOUNT_ID` is present
-- live-mode refusal when `LIVE_ACCOUNT_ID` is missing
+- live-mode enablement when `CDP_MODE=live`, `ENABLE_LIVE=true`, and `LIVE_ACCOUNT_ID` are present
+- live-mode refusal when any required live variable is missing
 
 ## Configuration
 
@@ -75,29 +75,39 @@ Configuration is handled through `config.js` and environment variables.
 
 ### Sandbox mode
 
-Sandbox mode is the default. If no live-specific environment variables are present, the app should stay in sandbox behavior.
+Sandbox mode is the default runtime path.
+
+```bash
+CDP_MODE=sandbox
+```
 
 ### Live mode
 
-Live mode should only activate when the app is intentionally configured for production use.
+Live mode is intentionally locked behind explicit configuration.
 
-Minimum live guardrail currently enforced by tests:
+To enable live mode, set all of the following:
 
 ```bash
+CDP_MODE=live
+ENABLE_LIVE=true
 LIVE_ACCOUNT_ID=your_live_account_id
 ```
 
-If `LIVE_ACCOUNT_ID` is not present, live mode must be refused.
+If any of those values are missing, the app must stay out of live mode.
+
+Live mode is meant for production use only. Keep live credentials separate from sandbox credentials.
 
 ## Recommended live-mode design
 
-If you plan to extend this repo for live usage, keep the separation strict:
+If you extend this repo for live usage, keep the separation strict:
 
 1. Use separate sandbox and live credentials.
-2. Keep live config behind explicit environment flags.
-3. Require `LIVE_ACCOUNT_ID` before allowing any live transfer path.
-4. Add a second safety flag if you want extra protection, such as `ENABLE_LIVE=true`.
-5. Keep live-only secrets out of your sandbox `.env` file.
+2. Keep live mode behind explicit environment flags.
+3. Require `CDP_MODE=live`.
+4. Require `ENABLE_LIVE=true`.
+5. Require `LIVE_ACCOUNT_ID` before allowing any live transfer path.
+6. Keep live-only secrets out of your sandbox `.env` file.
+7. Add tests that verify live mode cannot be enabled by accident.
 
 ## Project structure
 
@@ -111,6 +121,8 @@ If you plan to extend this repo for live usage, keep the separation strict:
 - Never commit API keys, private wallet files, or PATs.
 - Keep any secret material outside version control.
 - Treat live credentials as production-only data.
+- Never reuse sandbox keys in live mode.
+- Do not store secrets in the repo.
 
 ## License
 
