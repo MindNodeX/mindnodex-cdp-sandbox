@@ -96,3 +96,87 @@ test("execution rejects an incorrect confirmation", async () => {
 
   assert.equal(response.status, 400);
 });
+
+test("config defaults to sandbox mode", () => {
+  // Clear the module cache to ensure a fresh evaluation with current env vars.
+  delete require.cache[require.resolve("./config")];
+  const config = require("./config");
+
+  assert.equal(config.mode, "sandbox");
+  assert.equal(config.modeLabel, "Sandbox");
+  assert.equal(config.isLive, false);
+  assert.equal(config.confirmationWord, "SANDBOX");
+  assert.equal(config.balanceEnv, "sandbox");
+  assert.equal(config.transferListEnv, "sandbox-root");
+  assert.equal(config.transferEnv, "sandbox-transfer");
+  assert.equal(config.environmentLabel, "sandbox");
+});
+
+test("live mode config is populated when CDP_MODE=live and LIVE_ACCOUNT_ID is set", () => {
+  // Exercise the config module in isolation without actually starting the server.
+  // We do this by requiring the module in a child process that has the env vars set.
+  const { execFileSync } = require("node:child_process");
+
+  const output = execFileSync(
+    process.execPath,
+    [
+      "-e",
+      `
+        const config = require("./config");
+        console.log(JSON.stringify({
+          mode: config.mode,
+          modeLabel: config.modeLabel,
+          isLive: config.isLive,
+          confirmationWord: config.confirmationWord,
+          balanceEnv: config.balanceEnv,
+          transferListEnv: config.transferListEnv,
+          transferEnv: config.transferEnv,
+          environmentLabel: config.environmentLabel,
+          accountId: config.accountId,
+        }));
+      `,
+    ],
+    {
+      cwd: __dirname,
+      env: {
+        ...process.env,
+        CDP_MODE: "live",
+        LIVE_ACCOUNT_ID: "account_live-test-id",
+      },
+      encoding: "utf8",
+    }
+  );
+
+  const liveConfig = JSON.parse(output.trim());
+
+  assert.equal(liveConfig.mode, "live");
+  assert.equal(liveConfig.modeLabel, "Live");
+  assert.equal(liveConfig.isLive, true);
+  assert.equal(liveConfig.confirmationWord, "LIVE");
+  assert.equal(liveConfig.balanceEnv, "live");
+  assert.equal(liveConfig.transferListEnv, "live-root");
+  assert.equal(liveConfig.transferEnv, "live-transfer");
+  assert.equal(liveConfig.environmentLabel, "live");
+  assert.equal(liveConfig.accountId, "account_live-test-id");
+});
+
+test("live mode config refuses to start without LIVE_ACCOUNT_ID", () => {
+  const { spawnSync } = require("node:child_process");
+
+  const result = spawnSync(
+    process.execPath,
+    ["-e", "require('./config');"],
+    {
+      cwd: __dirname,
+      env: {
+        ...process.env,
+        CDP_MODE: "live",
+        LIVE_ACCOUNT_ID: "",
+      },
+      encoding: "utf8",
+    }
+  );
+
+  assert.notEqual(result.status, 0, "Process should have exited with non-zero status");
+  assert.match(result.stderr, /LIVE_ACCOUNT_ID/);
+});
