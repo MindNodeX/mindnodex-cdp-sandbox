@@ -15,7 +15,7 @@ const sandboxAccountId =
 
 const liveAccountId = process.env.LIVE_ACCOUNT_ID || "";
 
-const config = {
+module.exports = {
   mode,
   isLive,
   modeLabel: isLive ? "LIVE" : "SANDBOX",
@@ -26,5 +26,3 @@ const config = {
   confirmationWord: isLive ? "LIVE" : "SANDBOX",
   environmentLabel: isLive ? "live" : "sandbox",
 };
-
-module.exports = config;

@@ -1,10 +1,7 @@
 "use strict";
 
 const { execFileSync } = require("node:child_process");
-
-const ACCOUNT_ID =
-  process.env.ACCOUNT_ID ||
-  "account_2fccb8de-2e2f-4742-92f7-547451794f9a";
+const config = require("./config");
 
 const ASSETS = ["usd", "usdc"];
 
@@ -14,9 +11,9 @@ function getBalance(asset) {
       "cdp",
       [
         "api",
-        `/accounts/${ACCOUNT_ID}/balances/${asset}`,
+        `/accounts/${config.accountId}/balances/${asset}`,
         "-e",
-        "sandbox",
+        config.balanceEnv,
       ],
       {
         encoding: "utf8",
@@ -45,7 +42,13 @@ function getBalance(asset) {
   }
 }
 
-console.log("\nMindNodeX CDP Sandbox Dashboard");
-console.log("Account: configured via ACCOUNT_ID\n");
+console.log(`\nMindNodeX CDP ${config.modeLabel} Dashboard`);
+console.log(
+  `Account: configured via ${config.isLive ? "LIVE_ACCOUNT_ID" : "ACCOUNT_ID"}\n`
+);
 console.table(ASSETS.map(getBalance));
-console.log("SANDBOX ONLY — no real funds are connected.\n");
+if (config.isLive) {
+  console.log("LIVE MODE — real account settings are active.\n");
+} else {
+  console.log("SANDBOX ONLY — no real funds are connected.\n");
+}
