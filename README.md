@@ -97,6 +97,28 @@ If any of those values are missing, the app must stay out of live mode.
 
 Live mode is meant for production use only. Keep live credentials separate from sandbox credentials.
 
+## Environment files
+
+This repo includes `.env.example` as a safe starting point.
+
+To set up local configuration:
+
+```bash
+cp .env.example .env
+```
+
+Then edit `.env` with your sandbox values first.
+
+Keep live mode disabled until you are ready and have set:
+
+```bash
+CDP_MODE=live
+ENABLE_LIVE=true
+LIVE_ACCOUNT_ID=your_live_account_id
+```
+
+Never commit `.env` or secret files.
+
 ## Recommended live-mode design
 
 If you extend this repo for live usage, keep the separation strict:
